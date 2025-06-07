@@ -53,16 +53,7 @@ A production-ready Streamlit web application that provides natural language chat
 
 ## 🚀 Getting Started
 
-### 1. Environment Setup
-The application works in two modes:
-
-**With OpenAI API (Recommended)**:
-```bash
-# Set your OpenAI API key for AI-powered analysis
-export OPENAI_API_KEY="your-api-key-here"
-```
-
-### 3. Using the Application
+### Using the Application
 
 1. **Upload Excel File**: Click "Choose an Excel file" and select your .xlsx file
 2. **Wait for Processing**: The app will automatically analyze your data structure
