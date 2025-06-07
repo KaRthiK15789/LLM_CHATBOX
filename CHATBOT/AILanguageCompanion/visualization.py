@@ -1,426 +1,129 @@
 import plotly.express as px
 import plotly.graph_objects as go
-import plotly.figure_factory as ff
 import pandas as pd
-import numpy as np
-from typing import Dict, Any, List, Optional
+from typing import List, Dict, Optional
+from utils import DataUtils
 
 class ChartGenerator:
-    """
-    Generates various types of charts using Plotly based on data and query intent.
-    """
-    
     def __init__(self):
-        # Default color palette
-        self.colors = px.colors.qualitative.Set3
-    
-    def create_chart(self, df: pd.DataFrame, columns: List[str], chart_type: str, 
-                    original_columns: Dict[str, str], column_types: Dict[str, str]) -> Optional[go.Figure]:
-        """
-        Create a chart based on specified parameters.
-        
-        Args:
-            df: DataFrame with data
-            columns: List of column names to visualize
-            chart_type: Type of chart to create
-            original_columns: Mapping from normalized to original column names
-            column_types: Column type information
-            
-        Returns:
-            Plotly figure or None if chart cannot be created
-        """
+        self.utils = DataUtils()
+        self.colors = px.colors.qualitative.Plotly
+
+    def create_chart(self, df: pd.DataFrame, query: str, columns: List[str]) -> Optional[go.Figure]:
+        """Main method to create appropriate chart based on query."""
         try:
-            if not columns or len(columns) == 0:
-                return None
+            df = self.utils.calculate_revenue(df.copy())
+            query = self.utils.normalize_query(query)
             
-            # Map chart type to appropriate method
-            if chart_type.lower() in ['bar', 'column']:
-                return self._create_bar_chart(df, columns, original_columns, column_types)
-            elif chart_type.lower() in ['histogram', 'hist']:
-                return self._create_histogram(df, columns, original_columns, column_types)
-            elif chart_type.lower() in ['line', 'time_series']:
-                return self._create_line_chart(df, columns, original_columns, column_types)
-            elif chart_type.lower() in ['scatter', 'scatterplot']:
-                return self._create_scatter_plot(df, columns, original_columns, column_types)
-            elif chart_type.lower() in ['pie']:
-                return self._create_pie_chart(df, columns, original_columns, column_types)
-            elif chart_type.lower() in ['box', 'boxplot']:
-                return self._create_box_plot(df, columns, original_columns, column_types)
-            else:
-                # Default to bar chart for categorical data, histogram for numeric
-                if len(columns) == 1:
-                    col = columns[0]
-                    if column_types.get(col) == 'numeric':
-                        return self._create_histogram(df, columns, original_columns, column_types)
-                    else:
-                        return self._create_bar_chart(df, columns, original_columns, column_types)
-                else:
-                    return self._create_bar_chart(df, columns, original_columns, column_types)
+            # Handle specific chart requests
+            if "pie" in query and "revenue" in query:
+                return self._create_pie_chart(df, 'Product', 'Revenue', 'Revenue Share by Product')
+            
+            if "pie" in query:
+                col = self._find_best_column(df, columns, ['Product', 'Category', 'Type'])
+                if col:
+                    return self._create_pie_chart(df, col, None, f'Distribution of {col}')
+            
+            if "bar" in query or "compare" in query:
+                if "region" in query or "region" in [c.lower() for c in columns]:
+                    region_col = next((c for c in columns if "region" in c.lower()), columns[0])
+                    return self._create_bar_chart(df, region_col, 'Quantity', f'Quantity by {region_col}')
+                return self._create_comparison_chart(df, columns)
+            
+            if "time" in query or "date" in query:
+                date_col = next((c for c in columns if "date" in c.lower()), None)
+                if date_col:
+                    return self._create_time_series(df, date_col, self._find_numeric_column(df, columns))
+            
+            # Default to showing first categorical vs numeric columns
+            return self._create_smart_default_chart(df, columns)
         
         except Exception as e:
-            print(f"Error creating chart: {e}")
+            print(f"Chart generation error: {str(e)}")
             return None
-    
-    def _create_bar_chart(self, df: pd.DataFrame, columns: List[str], 
-                         original_columns: Dict[str, str], column_types: Dict[str, str]) -> Optional[go.Figure]:
-        """Create a bar chart."""
-        try:
-            if len(columns) == 1:
-                col = columns[0]
-                orig_name = original_columns.get(col, col)
-                
-                if column_types.get(col) == 'numeric':
-                    # For numeric columns, create bins
-                    bins = pd.cut(df[col].dropna(), bins=10)
-                    counts = bins.value_counts().sort_index()
-                    
-                    fig = px.bar(
-                        x=[str(interval) for interval in counts.index],
-                        y=counts.values,
-                        title=f'Distribution of {orig_name}',
-                        labels={'x': orig_name, 'y': 'Count'}
-                    )
-                else:
-                    # For categorical columns, show value counts
-                    value_counts = df[col].value_counts().head(20)  # Limit to top 20
-                    
-                    fig = px.bar(
-                        x=value_counts.index,
-                        y=value_counts.values,
-                        title=f'Count by {orig_name}',
-                        labels={'x': orig_name, 'y': 'Count'}
-                    )
-            
-            elif len(columns) == 2:
-                col1, col2 = columns[0], columns[1]
-                orig_name1 = original_columns.get(col1, col1)
-                orig_name2 = original_columns.get(col2, col2)
-                
-                # Group by first column and aggregate second column
-                if column_types.get(col2) == 'numeric':
-                    grouped = df.groupby(col1)[col2].mean().reset_index()
-                    fig = px.bar(
-                        grouped,
-                        x=col1,
-                        y=col2,
-                        title=f'Average {orig_name2} by {orig_name1}',
-                        labels={col1: orig_name1, col2: f'Average {orig_name2}'}
-                    )
-                else:
-                    # Cross-tabulation
-                    crosstab = pd.crosstab(df[col1], df[col2])
-                    fig = px.bar(
-                        crosstab,
-                        title=f'{orig_name2} by {orig_name1}',
-                        labels={'value': 'Count', 'index': orig_name1}
-                    )
-            
-            else:
-                return None
-            
-            # Update layout for better appearance
-            fig.update_layout(
-                showlegend=True,
-                template='plotly_white',
-                font=dict(size=12),
-                title_font_size=16,
-                xaxis_tickangle=-45
-            )
-            
-            return fig
-            
-        except Exception as e:
-            print(f"Error creating bar chart: {e}")
-            return None
-    
-    def _create_histogram(self, df: pd.DataFrame, columns: List[str], 
-                         original_columns: Dict[str, str], column_types: Dict[str, str]) -> Optional[go.Figure]:
-        """Create a histogram."""
-        try:
-            if len(columns) != 1:
-                return None
-            
-            col = columns[0]
-            orig_name = original_columns.get(col, col)
-            
-            if column_types.get(col) != 'numeric':
-                return None
-            
-            fig = px.histogram(
-                df,
-                x=col,
-                title=f'Distribution of {orig_name}',
-                labels={col: orig_name, 'count': 'Frequency'},
-                nbins=20
-            )
-            
-            # Add mean line
-            mean_val = df[col].mean()
-            fig.add_vline(
-                x=mean_val,
-                line_dash="dash",
-                line_color="red",
-                annotation_text=f"Mean: {mean_val:.2f}"
-            )
-            
-            fig.update_layout(
-                template='plotly_white',
-                font=dict(size=12),
-                title_font_size=16
-            )
-            
-            return fig
-            
-        except Exception as e:
-            print(f"Error creating histogram: {e}")
-            return None
-    
-    def _create_line_chart(self, df: pd.DataFrame, columns: List[str], 
-                          original_columns: Dict[str, str], column_types: Dict[str, str]) -> Optional[go.Figure]:
-        """Create a line chart."""
-        try:
-            if len(columns) < 2:
-                return None
-            
-            x_col, y_col = columns[0], columns[1]
-            x_orig = original_columns.get(x_col, x_col)
-            y_orig = original_columns.get(y_col, y_col)
-            
-            # Sort by x column for proper line chart
-            df_sorted = df.sort_values(x_col)
-            
-            fig = px.line(
-                df_sorted,
-                x=x_col,
-                y=y_col,
-                title=f'{y_orig} over {x_orig}',
-                labels={x_col: x_orig, y_col: y_orig}
-            )
-            
-            fig.update_layout(
-                template='plotly_white',
-                font=dict(size=12),
-                title_font_size=16
-            )
-            
-            return fig
-            
-        except Exception as e:
-            print(f"Error creating line chart: {e}")
-            return None
-    
-    def _create_scatter_plot(self, df: pd.DataFrame, columns: List[str], 
-                            original_columns: Dict[str, str], column_types: Dict[str, str]) -> Optional[go.Figure]:
-        """Create a scatter plot."""
-        try:
-            if len(columns) < 2:
-                return None
-            
-            x_col, y_col = columns[0], columns[1]
-            x_orig = original_columns.get(x_col, x_col)
-            y_orig = original_columns.get(y_col, y_col)
-            
-            # Use third column for color if available
-            color_col = columns[2] if len(columns) > 2 else None
-            color_orig = original_columns.get(color_col, color_col) if color_col else None
-            
-            fig = px.scatter(
-                df,
-                x=x_col,
-                y=y_col,
-                color=color_col,
-                title=f'{y_orig} vs {x_orig}',
-                labels={
-                    x_col: x_orig, 
-                    y_col: y_orig,
-                    color_col: color_orig if color_col else None
-                }
-            )
-            
-            fig.update_layout(
-                template='plotly_white',
-                font=dict(size=12),
-                title_font_size=16
-            )
-            
-            return fig
-            
-        except Exception as e:
-            print(f"Error creating scatter plot: {e}")
-            return None
-    
-    def _create_pie_chart(self, df: pd.DataFrame, columns: List[str], 
-                         original_columns: Dict[str, str], column_types: Dict[str, str]) -> Optional[go.Figure]:
+
+    def _create_pie_chart(self, df: pd.DataFrame, names_col: str, values_col: str = None, 
+                         title: str = None) -> go.Figure:
         """Create a pie chart."""
-        try:
-            if len(columns) != 1:
-                return None
-            
-            col = columns[0]
-            orig_name = original_columns.get(col, col)
-            
-            if column_types.get(col) == 'numeric':
-                return None  # Pie charts not suitable for numeric data
-            
-            value_counts = df[col].value_counts().head(10)  # Limit to top 10
-            
-            fig = px.pie(
-                values=value_counts.values,
-                names=value_counts.index,
-                title=f'Distribution of {orig_name}'
-            )
-            
-            fig.update_layout(
-                template='plotly_white',
-                font=dict(size=12),
-                title_font_size=16
-            )
-            
-            return fig
-            
-        except Exception as e:
-            print(f"Error creating pie chart: {e}")
+        if values_col:
+            fig = px.pie(df, names=names_col, values=values_col, title=title)
+        else:
+            counts = df[names_col].value_counts().reset_index()
+            counts.columns = [names_col, 'count']
+            fig = px.pie(counts, names=names_col, values='count', title=title)
+        
+        fig.update_traces(textposition='inside', textinfo='percent+label')
+        fig.update_layout(uniformtext_minsize=12, uniformtext_mode='hide')
+        return fig
+
+    def _create_bar_chart(self, df: pd.DataFrame, x_col: str, y_col: str, title: str) -> go.Figure:
+        """Create a bar chart."""
+        fig = px.bar(df, x=x_col, y=y_col, title=title, color=x_col)
+        fig.update_layout(xaxis_title=x_col, yaxis_title=y_col)
+        return fig
+
+    def _create_time_series(self, df: pd.DataFrame, date_col: str, value_col: str) -> go.Figure:
+        """Create a time series line chart."""
+        df[date_col] = pd.to_datetime(df[date_col])
+        df = df.sort_values(date_col)
+        fig = px.line(df, x=date_col, y=value_col, 
+                     title=f'{value_col} over Time')
+        fig.update_xaxes(title='Date')
+        fig.update_yaxes(title=value_col)
+        return fig
+
+    def _create_comparison_chart(self, df: pd.DataFrame, columns: List[str]) -> go.Figure:
+        """Create a comparison chart between columns."""
+        numeric_cols = [c for c in columns if pd.api.types.is_numeric_dtype(df[c])]
+        cat_cols = [c for c in columns if not pd.api.types.is_numeric_dtype(df[c])]
+        
+        if numeric_cols and cat_cols:
+            # Compare numeric across categories
+            return px.bar(df, x=cat_cols[0], y=numeric_cols[0], color=cat_cols[0],
+                         title=f'{numeric_cols[0]} by {cat_cols[0]}')
+        elif len(numeric_cols) >= 2:
+            # Compare multiple numeric columns
+            return px.bar(df[numeric_cols].mean().reset_index(), 
+                         x='index', y=0, title='Comparison of Metrics')
+        else:
+            # Show value counts for categorical data
+            return px.bar(df[cat_cols[0]].value_counts().reset_index(),
+                         x='index', y=cat_cols[0], title=f'Count by {cat_cols[0]}')
+
+    def _create_smart_default_chart(self, df: pd.DataFrame, columns: List[str]) -> go.Figure:
+        """Create a sensible default chart based on data types."""
+        numeric_cols = [c for c in columns if pd.api.types.is_numeric_dtype(df[c])]
+        cat_cols = [c for c in columns if not pd.api.types.is_numeric_dtype(df[c])]
+        
+        if not numeric_cols and not cat_cols:
             return None
-    
-    def _create_box_plot(self, df: pd.DataFrame, columns: List[str], 
-                        original_columns: Dict[str, str], column_types: Dict[str, str]) -> Optional[go.Figure]:
-        """Create a box plot."""
-        try:
-            if len(columns) == 1:
-                col = columns[0]
-                orig_name = original_columns.get(col, col)
-                
-                if column_types.get(col) != 'numeric':
-                    return None
-                
-                fig = px.box(
-                    df,
-                    y=col,
-                    title=f'Box Plot of {orig_name}',
-                    labels={col: orig_name}
-                )
             
-            elif len(columns) == 2:
-                x_col, y_col = columns[0], columns[1]
-                x_orig = original_columns.get(x_col, x_col)
-                y_orig = original_columns.get(y_col, y_col)
-                
-                if column_types.get(y_col) != 'numeric':
-                    return None
-                
-                fig = px.box(
-                    df,
-                    x=x_col,
-                    y=y_col,
-                    title=f'{y_orig} by {x_orig}',
-                    labels={x_col: x_orig, y_col: y_orig}
-                )
-            
-            else:
-                return None
-            
-            fig.update_layout(
-                template='plotly_white',
-                font=dict(size=12),
-                title_font_size=16
-            )
-            
-            return fig
-            
-        except Exception as e:
-            print(f"Error creating box plot: {e}")
-            return None
-    
-    def create_comparison_chart(self, df: pd.DataFrame, columns: List[str], 
-                               original_columns: Dict[str, str], column_types: Dict[str, str]) -> Optional[go.Figure]:
-        """Create a comparison chart for multiple columns."""
-        try:
-            if len(columns) < 2:
-                return None
-            
-            # If we have one categorical and one numeric column
-            categorical_cols = [col for col in columns if column_types.get(col) in ['categorical', 'binary']]
-            numeric_cols = [col for col in columns if column_types.get(col) == 'numeric']
-            
-            if len(categorical_cols) >= 1 and len(numeric_cols) >= 1:
-                cat_col = categorical_cols[0]
-                num_col = numeric_cols[0]
-                
-                cat_orig = original_columns.get(cat_col, cat_col)
-                num_orig = original_columns.get(num_col, num_col)
-                
-                # Group by categorical column and show statistics for numeric column
-                grouped = df.groupby(cat_col)[num_col].agg(['mean', 'count']).reset_index()
-                
-                fig = px.bar(
-                    grouped,
-                    x=cat_col,
-                    y='mean',
-                    title=f'Average {num_orig} by {cat_orig}',
-                    labels={cat_col: cat_orig, 'mean': f'Average {num_orig}'},
-                    hover_data=['count']
-                )
-                
-                fig.update_layout(
-                    template='plotly_white',
-                    font=dict(size=12),
-                    title_font_size=16,
-                    xaxis_tickangle=-45
-                )
-                
-                return fig
-            
-            # If all columns are numeric, create a correlation chart
-            elif len(numeric_cols) >= 2:
-                correlation_matrix = df[numeric_cols].corr()
-                return self.create_correlation_heatmap(correlation_matrix, original_columns)
-            
-            else:
-                # Default to grouped bar chart
-                return self._create_bar_chart(df, columns, original_columns, column_types)
-                
-        except Exception as e:
-            print(f"Error creating comparison chart: {e}")
-            return None
-    
-    def create_correlation_heatmap(self, correlation_matrix: pd.DataFrame, 
-                                  original_columns: Dict[str, str]) -> Optional[go.Figure]:
-        """Create a correlation heatmap."""
-        try:
-            # Replace column names with original names
-            display_matrix = correlation_matrix.copy()
-            display_columns = [original_columns.get(col, col) for col in correlation_matrix.columns]
-            display_index = [original_columns.get(col, col) for col in correlation_matrix.index]
-            
-            fig = px.imshow(
-                display_matrix.values,
-                x=display_columns,
-                y=display_index,
-                color_continuous_scale='RdBu_r',
-                aspect='auto',
-                title='Correlation Matrix',
-                zmin=-1,
-                zmax=1
-            )
-            
-            # Add correlation values as text
-            for i in range(len(display_index)):
-                for j in range(len(display_columns)):
-                    fig.add_annotation(
-                        x=j, y=i,
-                        text=f"{display_matrix.iloc[i, j]:.2f}",
-                        showarrow=False,
-                        font=dict(color="white" if abs(display_matrix.iloc[i, j]) > 0.5 else "black")
-                    )
-            
-            fig.update_layout(
-                template='plotly_white',
-                font=dict(size=12),
-                title_font_size=16
-            )
-            
-            return fig
-            
-        except Exception as e:
-            print(f"Error creating correlation heatmap: {e}")
-            return None
+        if numeric_cols and cat_cols:
+            # Show relationship between categorical and numeric
+            return px.box(df, x=cat_cols[0], y=numeric_cols[0],
+                         title=f'{numeric_cols[0]} by {cat_cols[0]}')
+        elif numeric_cols:
+            # Show distribution of numeric data
+            return px.histogram(df, x=numeric_cols[0], 
+                              title=f'Distribution of {numeric_cols[0]}')
+        else:
+            # Show value counts for categorical data
+            return px.bar(df[cat_cols[0]].value_counts().reset_index(),
+                         x='index', y=cat_cols[0],
+                         title=f'Count by {cat_cols[0]}')
+
+    def _find_best_column(self, df: pd.DataFrame, columns: List[str], 
+                         preferred: List[str] = None) -> Optional[str]:
+        """Find the most appropriate column for visualization."""
+        if preferred:
+            for col in preferred:
+                if col in columns:
+                    return col
+        return columns[0] if columns else None
+
+    def _find_numeric_column(self, df: pd.DataFrame, columns: List[str]) -> Optional[str]:
+        """Find the first numeric column."""
+        for col in columns:
+            if pd.api.types.is_numeric_dtype(df[col]):
+                return col
+        return None
