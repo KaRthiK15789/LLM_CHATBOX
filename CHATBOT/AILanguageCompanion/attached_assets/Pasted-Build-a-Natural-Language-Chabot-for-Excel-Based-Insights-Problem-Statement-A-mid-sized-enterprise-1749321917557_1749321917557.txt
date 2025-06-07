@@ -1,0 +1,93 @@
+Build a Natural Language Chabot for Excel-Based
+Insights
+Problem Statement
+A mid-sized enterprise relies heavily on Excel reports to track all its business operaƟons,
+including sales, inventory, employee performance and financial KPIs. OŌen, business users
+need quick insights from these files without waiƟng on the technical and reporƟng teams to
+filter, aggregate or visualize the data effecƟvely.
+As an intern at NeoStats, you are tasked with designing a conversaƟonal assistant that can read
+and understand Excel files and help users get the answers they need simply by asking quesƟons
+in plain English.
+The goal of this assignment is to evaluate your ability to work with structured data, integrate
+LLMs, reason through queries and build an intuiƟve user facing applicaƟon.
+
+Your ObjecƟve
+You will build a web-based chat assistant that:
+ Accepts an Excel file from the user
+ Reads and analyses the data
+ Allows users to ask natural language quesƟons
+ Returns answers as texts, tables or charts depending on the query.
+Data AssumpƟons
+The assistant should be able to handle general tabular data uploaded as an Excel file. Please
+keep the following expectaƟons in mind:
+1. Excel File Format
+ Input will be a standard .xlsx file.
+ The file will contain one sheet with a clearly labelled header row and
+structured data.
+ Expect up to 500 rows and 10-20 columns.
+2. Data Types
+ The dataset will contain a mix of numeric columns, categorical columns and
+binary indicators (yes/no flags).
+ Some columns may contain missing or null values.
+ Columns names may include spaces, special character, or inconsistent casing.
+3. Assistant Behaviour
+ AutomaƟcally infer and understand column types
+ Normalize column names internally for processing
+ Avoid relying on hardcoded column names or schemas.
+
+4. Types of QuesƟons to Support
+The assistant should support natural language queries like:
+ StaƟsƟcally summaries (e.g. What is the average income?)
+ Filtered queries (e.g. How many customers are under 30?)
+ Comparisons or groupings (e.g. Compare loan defaults by gender)
+ Visual insights (e.g. Show a bar chart of transacƟon count by job)
+5. VisualizaƟons
+If the quesƟon implies a trend, comparison, or distribuƟon, generate appropriate
+charts (e.g. bar chart, histograms, line chart). Ensure the charts are readable and
+labelled clearly.
+6. Important Notes
+ Do not hardcode any column names, values or assumpƟons.
+ Focus on making your assistant flexible and schema agnosƟc.
+ Treat this as a general-purpose insight engine. Your goal is to make the
+assistant useful even if the Excel schema changes.
+ You may leverage the open-source LLMs or OpenAI as needed; however,
+please note that NeoStats will not be providing any APIs for this use case.
+
+Submission Guidelines
+1. Host your applicaƟon Your conversaƟonal assistant should be available for us to test
+through a live hosted link.
+Suggested plaƞorms:
+ Streamlit Cloud
+ Hugging Face Spaces
+2. Submit a GitHub Repository Link Share a link to your public GitHub repository
+containing:
+ All project source code.
+ A clear and concise README.md
+3. Please ensure to include a PPT document that describes your soluƟon.
+
+EvaluaƟon Criteria:
+ FuncƟonal correctness: The assistant correctly reads Excel files, processes data and
+answers quesƟons accurately.
+ Reasoning and use of LLM: EffecƟve integraƟon of the language model to understand
+queries and extract insights.
+ Chart generaƟon and visualizaƟon: Appropriate and clear charts are generated when
+quesƟons require visual data representaƟon.
+
+Usability and interface design: The app is easy to use, intuiƟve, and provides clear
+feedback or error messages.
+ Code quality and organizaƟon: Code is clean, modular, well-documented, and easy to
+maintain.
+ Flexibility and generalizaƟon: The assistant works well across different Excel schemas
+without hardcoded assumpƟons.
+ CreaƟvity and bonus features (opƟonal): AddiƟonal useful features, thoughƞul
+design improvements, or enhanced UX/UI elements.
+
+Remember, this project is an opportunity to showcase your skills, creaƟvity, and problem-
+solving abiliƟes. Candidates are expected to showcase their analyƟcal, logical thinking, and
+
+deducƟon skills throughout this challenge. Your approach to the problem, as well as your
+ability to present and defend your findings, will be central to the evaluaƟon process.
+Please ensure the work is your original work. Any kind of plagiarism or taking help from others
+will have adverse consequences. Refrain from using ChatGPT, Gemini or any other AI tool, this
+will lead to immediate disqualificaƟon. We strictly do not tolerate any kind of malpracƟce or
+misbehaviour.

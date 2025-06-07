@@ -1,0 +1,109 @@
+Build me a complete, production-ready web application that acts as a natural language chatbot for Excel-based insights.
+
+Key Features & Functionalities to Include:
+
+File Upload: Allow the user to upload a .xlsx Excel file containing up to 500 rows and 10–20 columns. The file will have:
+
+One sheet only
+
+A header row
+
+Mixed data types: numeric, categorical, binary (Yes/No)
+
+Possible missing/null values
+
+Column names with inconsistent casing, spaces, or special characters
+
+Data Preprocessing:
+
+Automatically infer column types
+
+Normalize column names internally (do NOT hardcode)
+
+Be schema-agnostic: never assume fixed column names or formats
+
+Natural Language Interface:
+
+Accept plain English questions like:
+
+“What is the average income?”
+
+“How many customers are under 30?”
+
+“Compare sales across regions”
+
+“Show a bar chart of employee count by department”
+
+Return answers as:
+
+Text (summary/statistics)
+
+Tables (filtered or grouped data)
+
+Charts (bar, histogram, line, etc. based on intent)
+
+Visualizations:
+
+Auto-generate appropriate charts using matplotlib, plotly, or similar
+
+Charts must be labeled, clean, and readable
+
+Frontend/UI:
+
+Build an intuitive, clean, and responsive UI using Streamlit or Gradio
+
+Ensure easy upload, clear chat interface, error handling, and result display
+
+Backend/Logic:
+
+Integrate an LLM (OpenAI or open-source) to handle query interpretation
+
+Extract and reason over tabular data (use pandas)
+
+Ensure schema flexibility and resilience to changes
+
+Deployment:
+
+Deploy the app publicly using Streamlit Cloud or Hugging Face Spaces
+
+Repository Setup:
+
+Push complete codebase to GitHub with:
+
+Modular, well-documented code
+
+A README.md explaining the project, setup, usage, and examples
+
+PPT Summary:
+
+Include a solution.pptx that explains:
+
+Project overview
+
+System architecture
+
+Data handling & model logic
+
+Sample queries and visual outputs
+
+Key challenges & design decisions
+
+Constraints:
+
+No hardcoded logic for specific columns or queries
+
+Assistant must adapt to different Excel schemas automatically
+
+Handle errors gracefully with clear messages
+
+Tech Stack Suggestions (if needed):
+
+Frontend: Streamlit or Gradio
+
+Data: Pandas
+
+LLM: OpenAI GPT-4, Open Source models like LLaMA, Mistral, etc.
+
+Charts: Plotly, Matplotlib, or Altair
+
+Build everything exactly as required, ensuring the app is fully functional, user-friendly, and meets all objectives, assumptions, and evaluation criteria mentioned.
