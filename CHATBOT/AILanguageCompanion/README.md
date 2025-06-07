@@ -129,10 +129,6 @@ Automatically detects:
 - Intelligent column selection
 - Sophisticated analysis suggestions
 
-```
-
-
-```
 
 ## Error Handling
 
