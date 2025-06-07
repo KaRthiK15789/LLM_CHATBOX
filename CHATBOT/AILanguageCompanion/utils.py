@@ -1,73 +1,106 @@
 import pandas as pd
 import re
-from typing import Tuple, Optional, Dict, Any
+from typing import Union, Dict, List, Optional
+from datetime import datetime
 
 class DataUtils:
+    """Utility functions for data processing and query parsing"""
+    
     @staticmethod
-    def extract_product_name(query: str, products: list) -> str:
-        """Extract product name from natural language query."""
+    def normalize_column_name(query: str, columns: List[str]) -> Optional[str]:
+        """Match query terms to actual column names"""
         query = query.lower()
-        for product in products:
-            if product.lower() in query:
-                return product
-        raise ValueError(f"Product not found in query. Available products: {', '.join(products)}")
+        col_mapping = {
+            'sales': 'Revenue',
+            'income': 'Price',
+            'amount': 'Quantity',
+            'region': 'Region',
+            'date': 'Date',
+            'product': 'Product'
+        }
+        
+        # Check direct matches first
+        for col in columns:
+            if col.lower() in query:
+                return col
+        
+        # Check common synonyms
+        for term, col in col_mapping.items():
+            if term in query and col in columns:
+                return col
+        
+        return None
 
     @staticmethod
-    def detect_columns(query: str, available_columns: list) -> list:
-        """Identify which columns are being referenced in a query."""
-        detected = []
-        query = query.lower()
-        for col in available_columns:
-            if col.lower() in query:
-                detected.append(col)
-        return detected
+    def detect_date_columns(df: pd.DataFrame) -> List[str]:
+        """Identify potential date columns"""
+        date_cols = []
+        for col in df.columns:
+            if pd.api.types.is_datetime64_any_dtype(df[col]):
+                date_cols.append(col)
+            elif 'date' in col.lower() or 'time' in col.lower():
+                try:
+                    df[col] = pd.to_datetime(df[col])
+                    date_cols.append(col)
+                except:
+                    continue
+        return date_cols
 
     @staticmethod
     def calculate_revenue(df: pd.DataFrame) -> pd.DataFrame:
-        """Add revenue column if Price and Quantity exist."""
+        """Add revenue column if Price and Quantity exist"""
         if 'Price' in df.columns and 'Quantity' in df.columns:
             df['Revenue'] = df['Price'] * df['Quantity']
         return df
 
     @staticmethod
-    def normalize_query(query: str) -> str:
-        """Standardize query terms for better matching."""
-        replacements = {
-            'show me': 'show',
-            'display': 'show',
-            'graph': 'plot',
-            'chart': 'plot',
-            'diagram': 'plot',
-            'numbers': 'count',
-            'average': 'mean'
-        }
-        query = query.lower()
-        for old, new in replacements.items():
-            query = query.replace(old, new)
-        return query
+    def parse_date_range(query: str) -> Optional[Dict[str, datetime]]:
+        """Extract date ranges from queries"""
+        date_patterns = [
+            r'from (\w+ \d{1,2},? \d{4}) to (\w+ \d{1,2},? \d{4})',
+            r'between (\w+ \d{1,2},? \d{4}) and (\w+ \d{1,2},? \d{4})',
+            r'(\d{4}-\d{2}-\d{2}) to (\d{4}-\d{2}-\d{2})'
+        ]
+        
+        for pattern in date_patterns:
+            match = re.search(pattern, query, re.IGNORECASE)
+            if match:
+                try:
+                    return {
+                        'start': pd.to_datetime(match.group(1)),
+                        'end': pd.to_datetime(match.group(2))
+                    }
+                except:
+                    continue
+        return None
 
     @staticmethod
-    def get_column_stats(df: pd.DataFrame, column: str) -> dict:
-        """Generate statistics for a specific column."""
-        if column not in df.columns:
-            return {"error": f"Column '{column}' not found"}
-        
+    def validate_dataframe(df: pd.DataFrame) -> bool:
+        """Check if DataFrame meets requirements"""
+        if df.empty:
+            return False
+        if len(df.columns) < 2:
+            return False
+        return True
+
+    @staticmethod
+    def get_column_stats(df: pd.DataFrame, column: str) -> Dict[str, Union[str, float]]:
+        """Generate statistics for a specific column"""
         stats = {
-            "column": column,
-            "type": str(df[column].dtype),
-            "count": len(df[column]),
-            "missing": df[column].isna().sum()
+            'name': column,
+            'type': str(df[column].dtype),
+            'missing': df[column].isna().sum()
         }
         
         if pd.api.types.is_numeric_dtype(df[column]):
             stats.update({
-                "mean": df[column].mean(),
-                "min": df[column].min(),
-                "max": df[column].max(),
-                "median": df[column].median()
+                'mean': df[column].mean(),
+                'min': df[column].min(),
+                'max': df[column].max(),
+                'median': df[column].median()
             })
         else:
-            stats["unique_values"] = df[column].nunique()
-            stats["most_common"] = df[column].mode().iloc[0] if not df[column].empty else None
+            stats['unique'] = df[column].nunique()
+            stats['sample_values'] = df[column].dropna().unique()[:5].tolist()
         
         return stats
