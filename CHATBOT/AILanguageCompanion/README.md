@@ -2,7 +2,7 @@
 
 A production-ready Streamlit web application that provides natural language chatbot interface for Excel data analysis and visualization. Ask questions in plain English and get instant insights, statistics, and charts from your Excel data.
 
-## 🌟 Key Features
+##  Key Features
 
 ### Core Functionality
 - **Excel File Upload**: Support for .xlsx files with up to 500 rows and 10-20 columns
@@ -29,7 +29,7 @@ A production-ready Streamlit web application that provides natural language chat
 - Box Plots for statistical distribution
 - Correlation Heatmaps for numeric relationships
 
-## 🛠️ Technical Architecture
+## 🛠Technical Architecture
 
 ### Technology Stack
 - **Frontend**: Streamlit (Python web framework)
@@ -45,7 +45,7 @@ A production-ready Streamlit web application that provides natural language chat
 - **ChartGenerator**: Creates appropriate visualizations based on data and query intent
 - **Streamlit App**: Main user interface with chat functionality
 
-## 📋 Requirements
+## Requirements
 
 - Python 3.8 or higher
 - OpenAI API Key (optional - application works without it using fallback mode)
@@ -69,7 +69,7 @@ export OPENAI_API_KEY="your-api-key-here"
 3. **Ask Questions**: Type natural language questions in the chat interface
 4. **View Results**: Get instant responses with text, tables, or charts
 
-## 📄 Sample Data Files
+##  Sample Data Files
 
 The repository includes sample Excel files for testing:
 
@@ -77,7 +77,7 @@ The repository includes sample Excel files for testing:
 - `sample_sales_data.xlsx` - Sales transactions with customer demographics
 - `sample_survey_data.xlsx` - Customer survey responses and ratings
 
-## 💬 Example Queries
+## Example Queries
 
 ### Statistical Analysis
 - "What is the average age of employees?"
@@ -108,7 +108,7 @@ The repository includes sample Excel files for testing:
 - "Display relationships between numeric variables"
 - "Create a correlation heatmap"
 
-## 🔧 Technical Details
+## Technical Details
 
 ### File Requirements
 - **Format**: Excel files (.xlsx only)
@@ -138,25 +138,12 @@ Automatically detects:
 - Intelligent column selection
 - Sophisticated analysis suggestions
 
-**Fallback Mode (without OpenAI API)**:
-- Rule-based query parsing
-- Pattern matching for common questions
-- Basic statistical operations
-- Standard visualization generation
-
 ```
-
-### Production Deployment
-The application is designed for deployment on:
-- **Streamlit Cloud**: Direct deployment from GitHub
-- **Heroku**: Container-based deployment
-- **AWS/GCP/Azure**: Cloud platform deployment
-- **Docker**: Containerized deployment
 
 
 ```
 
-## 🛡️ Error Handling
+## Error Handling
 
 The application includes comprehensive error handling for:
 - **File Upload Issues**: Invalid formats, file size limits
@@ -166,13 +153,5 @@ The application includes comprehensive error handling for:
 - **Visualization Errors**: Incompatible data types, missing values
 
 
-## 🎯 Project Goals
-
-This application was built to meet the NeoStats internship assignment requirements:
-- Natural language interface for Excel data analysis
-- Schema-agnostic design for any data structure
-- Professional visualizations and insights
-- Production-ready code with proper error handling
-- Flexible deployment options
 
 The chatbot demonstrates advanced data analysis capabilities while maintaining simplicity for non-technical users.
