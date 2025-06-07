@@ -62,17 +62,6 @@ The application works in two modes:
 export OPENAI_API_KEY="your-api-key-here"
 ```
 
-**Without OpenAI API (Basic Mode)**:
-The application will automatically fall back to rule-based analysis if no API key is provided.
-
-### 2. Running the Application
-```bash
-# Start the Streamlit application
-streamlit run app.py --server.port 5000
-```
-
-The application will be available at `http://localhost:5000`
-
 ### 3. Using the Application
 
 1. **Upload Excel File**: Click "Choose an Excel file" and select your .xlsx file
@@ -155,14 +144,6 @@ Automatically detects:
 - Basic statistical operations
 - Standard visualization generation
 
-## 🚀 Deployment
-
-### Local Development
-```bash
-git clone <repository-url>
-cd excel-insights-chatbot
-pip install -r requirements.txt
-streamlit run app.py --server.port 5000
 ```
 
 ### Production Deployment
@@ -172,9 +153,7 @@ The application is designed for deployment on:
 - **AWS/GCP/Azure**: Cloud platform deployment
 - **Docker**: Containerized deployment
 
-### Environment Variables
-```bash
-OPENAI_API_KEY=your-openai-api-key  # Optional
+
 ```
 
 ## 🛡️ Error Handling
@@ -186,46 +165,6 @@ The application includes comprehensive error handling for:
 - **API Limitations**: Rate limits, quota exceeded, network issues
 - **Visualization Errors**: Incompatible data types, missing values
 
-## 📊 Architecture Overview
-
-```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Streamlit UI  │    │  Data Processor  │    │ Query Handler   │
-│                 │    │                  │    │                 │
-│ • File Upload   │───▶│ • Excel Loading  │───▶│ • OpenAI API    │
-│ • Chat Interface│    │ • Type Inference │    │ • Fallback Mode │
-│ • Visualization │    │ • Normalization  │    │ • Intent Analysis│
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-                                │                        │
-                                ▼                        ▼
-                       ┌──────────────────┐    ┌─────────────────┐
-                       │ Chart Generator  │    │  Response Gen   │
-                       │                  │    │                 │
-                       │ • Plotly Charts  │    │ • Text Answers  │
-                       │ • Auto Selection │    │ • Data Tables   │
-                       │ • Interactive UI │    │ • Explanations  │
-                       └──────────────────┘    └─────────────────┘
-```
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## 📝 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🙋‍♂️ Support
-
-For issues and questions:
-1. Check the error messages in the application
-2. Review the example queries above
-3. Ensure your Excel file meets the requirements
-4. Verify your OpenAI API key (if using AI mode)
 
 ## 🎯 Project Goals
 
